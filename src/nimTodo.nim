@@ -27,7 +27,9 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
           yield Match(lineNumber: lineNumber + 1, line: line.strip(), path: path, matcher: matcher)
 
 
-proc main(basePath = basePath) =
+proc main(basePath = basePath, absolutePath = false) =
+  ## `basePath` is the path which is searched
+  ## when `absolutePath` is true print the whole pat
   var tab: Table[int, Match]
 
   var idx = 1
@@ -38,7 +40,10 @@ proc main(basePath = basePath) =
     else:
       resetAttributes()
 
-    echo fmt"{style}{idx}: {match} :: {idx}"
+    var printMatch = match
+    if absolutePath == false:
+      printMatch.path = match.path.extractFilename()
+    echo fmt"{style}{idx}: {printMatch} :: {idx}"
     tab[idx] = match
     idx.inc
 
