@@ -1,10 +1,10 @@
-import os, osproc, json, strformat, strutils, tables, std/enumerate, terminal, cligen
+import os, strformat, strutils, tables, std/enumerate, terminal, cligen, algorithm
 # This is just an example to get you started. A typical binary package
 # uses this file as the main entry point of the application.
 
 
 const basePath = "/home/david/projects/obsidian/diary"
-const matchers = ["DOING", "TODO"]
+const matchers = ["DOING", "TODO", "DONE"]
 
 
 type 
@@ -20,16 +20,22 @@ proc `$`(match: Match): string =
 
 
 iterator find(basePath: string, matchers: openarray[string]): Match =
+  var paths: seq[string] = @[]
   for path in walkDirRec(basePath):
+    paths.add path
+  paths.sort()
+
+  for path in paths:
     for lineNumber, line in enumerate(path.lines()):
       for matcher in matchers:
         if line.contains(matcher):
           yield Match(lineNumber: lineNumber + 1, line: line.strip(), path: path, matcher: matcher)
 
 
-proc main(basePath = basePath, absolutePath = false) =
+proc main(basePath = basePath, absolutePath = false, showDone = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
+  ## when `json` is true print the output as json, the user is not asked then.
   var tab: Table[int, Match]
 
   var idx = 1
@@ -37,15 +43,18 @@ proc main(basePath = basePath, absolutePath = false) =
     var style = ""
     if match.matcher == "DOING":
       style = ansiForegroundColorCode(fgYellow)
+    elif showDone and match.matcher == "DONE":
+      style = ansiForegroundColorCode(fgGreen)
     else:
       resetAttributes()
 
-    var printMatch = match
-    if absolutePath == false:
-      printMatch.path = match.path.extractFilename()
-    echo fmt"{style}{idx}: {printMatch} :: {idx}"
-    tab[idx] = match
-    idx.inc
+    if (showDone and match.matcher == "DONE") or match.matcher != "DONE":
+      var printMatch = match
+      if absolutePath == false:
+        printMatch.path = match.path.extractFilename()
+      echo fmt"{style}{idx}: {printMatch} :: {idx}"
+      tab[idx] = match
+      idx.inc
 
   resetAttributes()
   stdout.write("Choose: ")

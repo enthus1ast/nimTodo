@@ -11,3 +11,8 @@ bin           = @["nimTodo"]
 # Dependencies
 
 requires "nim >= 2.0.0"
+requires "cligen"
+
+
+task buildRelease, "builds a release build":
+  exec "nim c -d:release --opt:speed -d:lto src/nimTodo.nim"
