@@ -15,4 +15,4 @@ requires "cligen"
 
 
 task buildRelease, "builds a release build":
-  exec "nim c -d:release --opt:speed -d:lto src/nimTodo.nim"
+  exec "nim c -d:release -d:danger --opt:speed -d:lto --passl:-s src/nimTodo.nim"

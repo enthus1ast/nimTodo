@@ -32,10 +32,11 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
           yield Match(lineNumber: lineNumber + 1, line: line.strip(), path: path, matcher: matcher)
 
 
-proc main(basePath = basePath, absolutePath = false, showDone = false) =
+proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
+  ## when `quiet` is true, do not ask for the file
   var tab: Table[int, Match]
 
   var idx = 1
@@ -57,15 +58,17 @@ proc main(basePath = basePath, absolutePath = false, showDone = false) =
       idx.inc
 
   resetAttributes()
-  stdout.write("Choose: ")
-  var choiceStr = stdin.readLine().strip()
-  try:
-    var choiceInt = parseInt(choiceStr)
-    let info = tab[choiceInt]
-    let cmd = fmt"nvim '{info.path}' +:{info.lineNumber}"
-    discard execShellCmd(cmd)
-  except:
-    discard
+
+  if quiet == false:
+    stdout.write("Choose: ")
+    var choiceStr = stdin.readLine().strip()
+    try:
+      var choiceInt = parseInt(choiceStr)
+      let info = tab[choiceInt]
+      let cmd = fmt"nvim '{info.path}' +:{info.lineNumber}"
+      discard execShellCmd(cmd)
+    except:
+      discard
 
 when isMainModule:
   dispatch(main)
