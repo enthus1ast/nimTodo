@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.3.0"
 author        = "David Krause (enthus1ast)"
 description   = "rg based TODO finder"
 license       = "MIT"
