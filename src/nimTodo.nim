@@ -1,6 +1,5 @@
 import os, strformat, strutils, tables, std/enumerate, terminal, cligen, algorithm, terminal
-# This is just an example to get you started. A typical binary package
-# uses this file as the main entry point of the application.
+import lexer
 
 ## Quick fix list
 # file row col errormessage
@@ -17,47 +16,57 @@ type
     path: string
     matcher: string
 
-
-type
-  TokenKind = enum
-    TStr, TQuestion, TExclamation
-  Token = object
-    kind: TokenKind
-    data: str
-proc parseStr() =
-  discard
-proc parseImportant() =
-  discard
-proc parseQuestion() =
-  discard
-
-
-quit()
-
-proc colorParser(str: string): string =
-  for ch in str:
-    if ch == '!':
+proc render(tokens: seq[Token], style: string): string =
+  for token in tokens:
+    case token.kind
+    of TStr:
+      result.add style
+      result.add token.data
+    of TQuestion:
+      result.add ansiForegroundColorCode(fgBlue)
+      result.add ansiStyleCode(styleBright)
+      result.add token.data
+      result.add ansiResetCode
+    of TExclamation:
       result.add ansiForegroundColorCode(fgRed)
       result.add ansiStyleCode(styleBlink)
       result.add ansiStyleCode(styleBright)
-      result.add ch
+      result.add token.data
       result.add ansiResetCode
-      result.add ansiForegroundColorCode(fgDefault)
-    # elif ch == '?':
-    #   result.add ansiForegroundColorCode(fgBlue)
-    #   # result.add ansiStyleCode(styleBlink)
-    #   # result.add ansiStyleCode(styleBright)
-    #   result.add ch
-    #   # result.add ansiResetCode
-    #   result.add ansiForegroundColorCode(fgDefault)
-    else:
-      result.add ch
+    of TStar:
+      # result.add ansiForegroundColorCode(fgRed)
+      # result.add ansiStyleCode(styleBlink)
+      result.add ansiStyleCode(styleItalic)
+      result.add ansiStyleCode(styleBright)
+      result.add token.data
+      result.add ansiResetCode
+
+
+# proc colorParser(str: string): string =
+#   for ch in str:
+#     if ch == '!':
+#       result.add ansiForegroundColorCode(fgRed)
+#       result.add ansiStyleCode(styleBlink)
+#       result.add ansiStyleCode(styleBright)
+#       result.add ch
+#       result.add ansiResetCode
+#       result.add ansiForegroundColorCode(fgDefault)
+#     # elif ch == '?':
+#     #   result.add ansiForegroundColorCode(fgBlue)
+#     #   # result.add ansiStyleCode(styleBlink)
+#     #   # result.add ansiStyleCode(styleBright)
+#     #   result.add ch
+#     #   # result.add ansiResetCode
+#     #   result.add ansiForegroundColorCode(fgDefault)
+#     else:
+#       result.add ch
 
 
 # proc `$`(match: Match): string =
-proc toStr(match: Match, color = true): string =
+proc toStr(match: Match, style: string, color = true): string =
   if color:
-    return fmt"{match.path}: {match.line.colorParser()}"
+    var tokens = parse(match.line)
+    return fmt"{match.path}: {tokens.render(style)}"
   else:
     return fmt"{match.path}: {match.line}"
 
@@ -84,6 +93,7 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
 proc ctrlc() {.noconv.} =
   echo ""
   quit()
+
 
 proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false, clist = false, doingOnly = false) =
   ## `basePath` is the path which is searched
@@ -114,7 +124,7 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
       if clist:
         echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
       else:
-        echo fmt"{style}{idx:>3}: {printMatch.toStr(isatty)} :: {idx}"
+        echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}"
 
       tab[idx] = match
       idx.inc

@@ -1,7 +1,7 @@
 Bugs
 ====================
 
-- 001: After "!!" the text color is lost.
+- DONE 001: After "!!" the text color is lost.
 
 Changelog
 ====================
