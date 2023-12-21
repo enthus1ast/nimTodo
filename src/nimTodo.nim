@@ -82,7 +82,7 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
-proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false, clist = false) =
+proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false, clist = false, doingOnly = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
@@ -107,8 +107,7 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
       var printMatch = match
       if absolutePath == false:
         printMatch.path = match.path.extractFilename()
-
-
+      if doingOnly and match.matcher != "DOING": continue # skip everything that is not DOING
       if clist:
         echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
       else:
@@ -133,5 +132,11 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
       discard
 
 when isMainModule:
-  dispatch(main)
+  dispatch(main, help={
+    "absolutePath": "Prints the whole path to the file",
+    "showDone": "Also print `DONE` entries",
+    "clist": "Prints entries in the vim `quick fix list` format",
+    "quiet": "Just print, do not ask the user",
+
+  })
   

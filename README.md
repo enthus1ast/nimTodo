@@ -1,3 +1,8 @@
+Bugs
+====================
+
+- 001: After "!!" the text color is lost.
+
 Changelog
 ====================
 
