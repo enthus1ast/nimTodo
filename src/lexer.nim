@@ -8,6 +8,7 @@ type
     data*: string
     col*: int
 
+
 proc parse*(str: string): seq[Token] =
   var pos = 0
   var data = ""
@@ -16,11 +17,9 @@ proc parse*(str: string): seq[Token] =
     if ch == '!':
       pos += str.parseWhile(data, {'!'}, pos)
       result.add Token(kind: TExclamation, data: data, col: pos)
-      # pos.inc
     elif ch == '?':
       pos += str.parseWhile(data, {'?'}, pos)
       result.add Token(kind: TQuestion, data: data, col: pos)
-      # pos.inc
     elif ch == '*':
       pos.inc
       pos += str.parseUntil(data, {'*'}, pos)
@@ -28,10 +27,7 @@ proc parse*(str: string): seq[Token] =
       pos.inc
     else:
       pos += str.parseUntil(data, {'?', '!', '*'}, pos)
-      # pos += str.parseUntil(data, {'?', '!'}, pos)
-      # pos.inc # skip ?,!
       result.add Token(kind: TStr, data: data, col: pos)
-
 
 
 when isMainModule:

@@ -34,35 +34,11 @@ proc render(tokens: seq[Token], style: string): string =
       result.add token.data
       result.add ansiResetCode
     of TStar:
-      # result.add ansiForegroundColorCode(fgRed)
-      # result.add ansiStyleCode(styleBlink)
       result.add ansiStyleCode(styleItalic)
       result.add ansiStyleCode(styleBright)
       result.add token.data
       result.add ansiResetCode
 
-
-# proc colorParser(str: string): string =
-#   for ch in str:
-#     if ch == '!':
-#       result.add ansiForegroundColorCode(fgRed)
-#       result.add ansiStyleCode(styleBlink)
-#       result.add ansiStyleCode(styleBright)
-#       result.add ch
-#       result.add ansiResetCode
-#       result.add ansiForegroundColorCode(fgDefault)
-#     # elif ch == '?':
-#     #   result.add ansiForegroundColorCode(fgBlue)
-#     #   # result.add ansiStyleCode(styleBlink)
-#     #   # result.add ansiStyleCode(styleBright)
-#     #   result.add ch
-#     #   # result.add ansiResetCode
-#     #   result.add ansiForegroundColorCode(fgDefault)
-#     else:
-#       result.add ch
-
-
-# proc `$`(match: Match): string =
 proc toStr(match: Match, style: string, color = true): string =
   if color:
     var tokens = parse(match.line)
@@ -89,6 +65,7 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
             path: path,
             matcher: matcher
           )
+
 
 proc ctrlc() {.noconv.} =
   echo ""
@@ -128,7 +105,6 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
 
       tab[idx] = match
       idx.inc
-
   
   if isatty:
     resetAttributes()
@@ -143,6 +119,7 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
       discard execShellCmd(cmd)
     except:
       discard
+
 
 when isMainModule:
   dispatch(main, help={
