@@ -18,18 +18,21 @@ type
     matcher: string
 
 
-# type
-#   TokenKind = enum
-#     TStr, TQuestion, TExclamation
-#   Token = object
-#     kind: TokenKind
-#     data: str
-# proc parseStr() =
-#   discard
-# proc parseImportant() =
-#   discard
-# proc parseQuestion() =
-#   discard
+type
+  TokenKind = enum
+    TStr, TQuestion, TExclamation
+  Token = object
+    kind: TokenKind
+    data: str
+proc parseStr() =
+  discard
+proc parseImportant() =
+  discard
+proc parseQuestion() =
+  discard
+
+
+quit()
 
 proc colorParser(str: string): string =
   for ch in str:
