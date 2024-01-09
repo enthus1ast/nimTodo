@@ -19,7 +19,7 @@ type
 proc render(tokens: seq[Token], style: string): string =
   for token in tokens:
     case token.kind
-    of TStr:
+    of TStr, TBacktick:
       result.add style
       result.add token.data
     of TQuestion:
@@ -34,8 +34,11 @@ proc render(tokens: seq[Token], style: string): string =
       result.add token.data
       result.add ansiResetCode
     of TStar:
-      result.add ansiStyleCode(styleItalic)
       result.add ansiStyleCode(styleBright)
+      result.add token.data
+      result.add ansiResetCode
+    of TQuotation:
+      result.add ansiStyleCode(styleItalic)
       result.add token.data
       result.add ansiResetCode
 
