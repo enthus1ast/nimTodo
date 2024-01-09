@@ -122,11 +122,17 @@ proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = f
 
 
 when isMainModule:
-  dispatch(main, help={
-    "absolutePath": "Prints the whole path to the file",
-    "showDone": "Also print `DONE` entries",
-    "clist": "Prints entries in the vim `quick fix list` format",
-    "quiet": "Just print, do not ask the user",
+  dispatch(main, 
+    help={
+      "absolutePath": "Prints the whole path to the file",
+      "showDone": "Also print `DONE` entries",
+      "clist": "Prints entries in the vim `quick fix list` format",
+      "quiet": "Just print, do not ask the user",
 
-  })
+    },
+    short={
+      "absolutePath": 'p',
+      "showDone": 'a'
+    }
+  )
   
