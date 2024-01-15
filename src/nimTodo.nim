@@ -1,4 +1,4 @@
-import os, strformat, strutils, tables, std/enumerate, terminal, cligen, algorithm, terminal
+import os, strformat, strutils, tables, std/enumerate, terminal, cligen, algorithm, terminal, times
 import lexer
 
 ## Quick fix list
@@ -41,6 +41,11 @@ proc render(tokens: seq[Token], style: string): string =
       result.add ansiStyleCode(styleItalic)
       result.add token.data
       result.add ansiResetCode
+    of TTag:
+      result.add ansiStyleCode(styleBright)
+      result.add token.data
+      result.add ansiResetCode
+
 
 proc toStr(match: Match, style: string, color = true): string =
   if color:
@@ -69,18 +74,31 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
             matcher: matcher
           )
 
+proc genTodaysFileName(): string =
+  return now().format("YYYY-MM-dd") & ".md"
 
 proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
-
-proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false, clist = false, doingOnly = false) =
+proc main(basePath = basePath, absolutePath = false, showDone = false, quiet = false, clist = false, doingOnly = false, newFile = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
   ## when `quiet` is true, do not ask for the file
   setControlCHook(ctrlc)
+
+  # Handle "newFile" which is special since it directly opens todays file
+  if newFile:
+    try:
+      let path = basePath / genTodaysFileName() # "diary" must be configurable
+      let cmd = fmt"nvim '{path}'"
+      discard execShellCmd(cmd)
+      quit()
+    except:
+      discard
+
+
   var tab: Table[int, Match]
   let isatty = isatty(stdout)
   var idx = 1
@@ -131,6 +149,7 @@ when isMainModule:
       "showDone": "Also print `DONE` entries",
       "clist": "Prints entries in the vim `quick fix list` format",
       "quiet": "Just print, do not ask the user",
+      "newFile": "Opens the todays diary file"
 
     },
     short={
