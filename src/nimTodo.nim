@@ -1,11 +1,13 @@
-import os, strformat, strutils, tables, std/enumerate, terminal, cligen, algorithm, terminal, times, sequtils
-import lexer
+import std/[os, strformat, strutils, tables, enumerate, terminal, algorithm, terminal, times, sequtils]
+import cligen, sim
+import configs, lexer
+
+
 
 ## Quick fix list
 # file row col errormessage
 
-const basePath = "/home/david/projects/obsidian/diary"
-const matchers = ["DOING", "TODO", "DONE"] # Matchers for the TODO's
+let config = loadObject[Config](getAppDir() / "config.ini", false)
 
 
 type 
@@ -80,7 +82,7 @@ iterator findTags(basePath: string, matchers: openarray[string]): Match =
 
 proc populateTags(): Tags =
   ## Finds all the tags, stores it in tags returns tag table
-  for match in findTags(basePath.absolutePath(), matchers):
+  for match in findTags(config.basePath.absolutePath(), config.matchers):
     if not result.contains(match.path):
       result[match.path] = @[]
     result[match.path].add match
@@ -144,7 +146,7 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
-proc main(basePath = basePath, absolutePath = false, showDone = false,
+proc main(basePath = config.basePath, absolutePath = false, showDone = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
     tags = false, tagsFiles = false) =
   ## `basePath` is the path which is searched
@@ -179,7 +181,7 @@ proc main(basePath = basePath, absolutePath = false, showDone = false,
   var tab: Table[int, Match]
   let isatty = isatty(stdout)
   var idx = 1
-  for match in find(basePath.absolutePath(), matchers):
+  for match in find(config.basePath.absolutePath(), config.matchers):
     var style = ""
     
     if isatty:

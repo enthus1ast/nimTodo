@@ -1,2 +1,4 @@
 src/nimTodo
 src/lexer
+src/config
+src/configs

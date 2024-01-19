@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.5.0"
+version       = "0.6.0"
 author        = "David Krause (enthus1ast)"
 description   = "rg based TODO finder"
 license       = "MIT"
@@ -11,7 +11,8 @@ bin           = @["nimTodo"]
 # Dependencies
 
 requires "nim >= 2.0.0"
-requires "cligen"
+requires "cligen" # for commandline cli
+requires "sim" # for config parsing
 
 
 task buildRelease, "builds a release build":
