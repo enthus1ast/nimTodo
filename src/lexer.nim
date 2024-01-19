@@ -38,7 +38,14 @@ proc parse*(str: string): seq[Token] =
     elif ch == '#':
       pos.inc
       pos += str.parseUntil(data, {' '}, pos)
-      result.add Token(kind: TTag, data: "#" & data, col: pos)
+      var kind: TokenKind
+      if data.len == 0 or data.startsWith("#"):
+        # filter invalid tags
+        # only '#' or '##...' tag -> emit as TStr
+        kind = TStr
+      else:
+        kind = TTag
+      result.add Token(kind: kind, data: "#" & data, col: pos)
     else:
       pos += str.parseUntil(data, {'?', '!', '*', '`', '\"', '#'}, pos)
       result.add Token(kind: TStr, data: data, col: pos)
