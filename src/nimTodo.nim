@@ -1,8 +1,7 @@
-import std/[os, strformat, strutils, tables, enumerate, terminal, algorithm, terminal, times, sequtils]
+import std/[os, strformat, strutils, tables, enumerate,
+  terminal, algorithm, terminal, times, sequtils]
 import cligen, sim
 import configs, lexer
-
-
 
 ## Quick fix list
 # file row col errormessage
@@ -70,8 +69,6 @@ iterator findTags(basePath: string, matchers: openarray[string]): Match =
     for lineNumber, line in enumerate(lines(path)):
       let tokens = parse(line).filterIt(it.kind == TTag)
       for token in tokens:
-        if token.data.len() == 1: continue # filter "#" tags; TODO this should be done in parser
-        if token.data[1] == '#': continue # filter "##"... tags; TODO this should be done in parser
         yield Match(
           lineNumber: lineNumber + 1,
           columnNumber: token.col,
@@ -148,12 +145,25 @@ proc ctrlc() {.noconv.} =
 
 proc main(basePath = config.basePath, absolutePath = false, showDone = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
-    tags = false, tagsFiles = false) =
+    tags = false, tagsFiles = false, tagOpen = "") =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
   ## when `quiet` is true, do not ask for the file
   setControlCHook(ctrlc)
+
+  # Open all files that contain the given tag
+  if tagOpen.len > 0:
+    let tagsTable = populateTags()
+    var filesToOpen: seq[Path]
+    for path, matches in tagsTable.pairs:
+      if 0 != matches.filterIt(it.line.toLower() == "#" & tagOpen.toLower()).len:
+        filesToOpen.add path
+    # echo filesToOpen
+    let param = filesToOpen.mapIt(it.quoteShell()).join(" ")
+    discard execShellCmd(fmt"nvim {param}")
+    quit()
+
 
   # # Handle "tags" this just prints all the tags
   if tags:
