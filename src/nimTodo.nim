@@ -1,24 +1,14 @@
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, terminal, times, sequtils]
 import cligen, sim
-import configs, lexer
+import configs, lexer, types, tags
 
 ## Quick fix list
 # file row col errormessage
 
-let config = loadObject[Config](getAppDir() / "config.ini", false)
-
-
-type 
-  Path = string
-  Tag = string
-  Match = object
-    lineNumber: int
-    columnNumber: int
-    line: string
-    path: Path
-    matcher: string
-  Tags = Table[Path, seq[Match]] ## for storing and query tags
+template TODO(matchers: seq[string]): string = matchers[0]
+template DOING(matchers: seq[string]): string = matchers[1]
+template DONE(matchers: seq[string]): string = matchers[2]
 
 proc render(tokens: seq[Token], style: string): string =
   for token in tokens:
@@ -58,65 +48,6 @@ proc toStr(match: Match, style: string, color = true): string =
   else:
     return fmt"{match.path}: {match.line}"
 
-iterator findTags(basePath: string, matchers: openarray[string]): Match =
-  ## Walks through the basePath folder and yields tags messages
-  ## For this it lexes every line it encounters
-  var paths: seq[string] = @[]
-  for path in walkDirRec(basePath):
-    paths.add path
-  paths.sort()
-  for path in paths:
-    for lineNumber, line in enumerate(lines(path)):
-      let tokens = parse(line).filterIt(it.kind == TTag)
-      for token in tokens:
-        yield Match(
-          lineNumber: lineNumber + 1,
-          columnNumber: token.col,
-          line: token.data,
-          path: path,
-          matcher: "TAG" # should this be the Content/data of the Token?
-        )
-
-proc populateTags(): Tags =
-  ## Finds all the tags, stores it in tags returns tag table
-  for match in findTags(config.basePath.absolutePath(), config.matchers):
-    if not result.contains(match.path):
-      result[match.path] = @[]
-    result[match.path].add match
-
-proc sortedKeys(tags: auto): seq[string] =
-  result = toSeq(tags.keys())
-  result.sort()
-
-proc printPathAndTags(tags: Tags) =
-  ## Print all the tags from the files.
-  ## So: /path/to/file.md #Tag1 #Tag2
-  for path in tags.sortedKeys:
-    let matches = tags[path]
-    echo path, " ", matches.mapIt(it.line).join(" ")
-
-proc normalizeTag(str: string): string =
-  return str.tolower()
-
-proc printTagAndFiles(tags: Tags) =
-  ## Print all the tags from the files.
-  ## So: #Tag1 /path/to/file.md /path/to/file2.md 
-  var tagFile: Table[Tag, seq[Path]]
-  for path in tags.sortedKeys():
-    let matches = tags[path]
-    for match in matches:
-      let tag = match.line.normalizeTag()
-      if not tagFile.contains(tag):
-        tagFile[tag] = @[]
-      tagFile[tag].add path
-  # echo tagFile
-  for tag in tagFile.sortedKeys():
-    let files = tagFile[tag] 
-    echo tag
-    for file in files.sorted():
-      echo "\t" & file
-    echo ""
-
 iterator find(basePath: string, matchers: openarray[string]): Match =
   var paths: seq[string] = @[]
   for path in walkDirRec(basePath):
@@ -143,23 +74,6 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
-proc `===`(aa, bb: Tag): bool =
-  ## Compare tags smart
-  aa.strip(true, false, chars = {'#'}).toLower() == bb.strip(true, false, chars = {'#'}).toLower()
-
-proc filesWithTag(tags: Tags, tag: Tag): seq[Path] =
-  ## returns a seq with all files containing the given tag
-  for path, matches in tags.pairs:
-    if matches.filterIt(it.line.Tag === tag.Tag).len == 0:
-      result.add path
-
-proc openAllTagFiles(tag: Tag) =
-  ## Opens all the files of the given tag in nvim 
-  let tagsTable = populateTags()
-  var filesToOpen: seq[Path]
-  let param = tagsTable.filesWithTag(tag).mapIt(it.quoteShell()).join(" ")
-  discard execShellCmd(fmt"nvim {param}")
-
 proc main(basePath = config.basePath, absolutePath = false, showDone = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
     tags = false, tagsFiles = false, tagOpen = "") =
@@ -169,75 +83,80 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
   ## when `quiet` is true, do not ask for the file
   setControlCHook(ctrlc)
 
-  # Open all files that contain the given tag
-  if tagOpen.len > 0:
-    openAllTagFiles(tag = tagOpen)
-    quit()
+  block specials:
+    ## Here all the special commands are handled
 
-  # Handle "tags" this just prints all the tags
-  if tags:
-    let tagsTable = populateTags()
-    tagsTable.printPathAndTags()
-    quit()
-  
-  # Handle "tags" this just prints all the tags
-  if tagsFiles:
-    let tagsTable = populateTags()
-    tagsTable.printTagAndFiles()
-    quit()
-
-  # Handle "newFile" which is special since it directly opens todays file
-  if newFile:
-    try:
-      let path = basePath / genTodaysFileName() # "diary" must be configurable
-      let cmd = fmt"nvim '{path}'"
-      discard execShellCmd(cmd)
+    # Open all files that contain the given tag
+    if tagOpen.len > 0:
+      let tags = populateTags()
+      tags.openAllTagFiles(tag = tagOpen)
       quit()
-    except:
-      discard
 
+    # Handle "tags" this just prints all the tags
+    if tags:
+      let tags = populateTags()
+      tags.printPathAndTags()
+      quit()
+    
+    # Handle "tags" this just prints all the tags
+    if tagsFiles:
+      let tags = populateTags()
+      tags.printTagAndFiles()
+      quit()
 
-  var tab: Table[int, Match]
-  let isatty = isatty(stdout)
-  var idx = 1
-  for match in find(config.basePath.absolutePath(), config.matchers):
-    var style = ""
+    # Handle "newFile" which is special since it directly opens todays file
+    if newFile:
+      try:
+        let path = basePath / genTodaysFileName() # "diary" must be configurable
+        let cmd = fmt"nvim '{path}'"
+        discard execShellCmd(cmd)
+        quit()
+      except:
+        discard
+
+  block normal:
+    ## Here the normal operations are handled, display the TODOs
+    var tab: Table[int, Match]
+    let isatty = isatty(stdout)
+    var idx = 1
+    for match in find(config.basePath.absolutePath(), config.matchers):
+      var style = ""
+      
+      if isatty:
+        # Only show colors when on a tty (not eg in vim)
+        if match.matcher == config.matchers.DOING:
+          style = ansiForegroundColorCode(fgYellow)
+        elif showDone and match.matcher == config.matchers.DONE:
+          style = ansiForegroundColorCode(fgGreen)
+        else:
+          resetAttributes()
+
+      if (showDone and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
+        var printMatch = match
+        if absolutePath == false:
+          printMatch.path = match.path.extractFilename()
+        if doingOnly and match.matcher != config.matchers.DOING: continue # skip everything that is not DOING
+        if clist:
+          echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
+        else:
+          echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}"
+
+        tab[idx] = match
+        idx.inc
     
     if isatty:
-      # Only show colors when on a tty (not eg in vim)
-      if match.matcher == "DOING":
-        style = ansiForegroundColorCode(fgYellow)
-      elif showDone and match.matcher == "DONE":
-        style = ansiForegroundColorCode(fgGreen)
-      else:
-        resetAttributes()
+      resetAttributes()
 
-    if (showDone and match.matcher == "DONE") or match.matcher != "DONE":
-      var printMatch = match
-      if absolutePath == false:
-        printMatch.path = match.path.extractFilename()
-      if doingOnly and match.matcher != "DOING": continue # skip everything that is not DOING
-      if clist:
-        echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
-      else:
-        echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}"
-
-      tab[idx] = match
-      idx.inc
-  
-  if isatty:
-    resetAttributes()
-
-  if quiet == false and isatty:
-    stdout.write("Choose: ")
-    var choiceStr = stdin.readLine().strip()
-    try:
-      var choiceInt = parseInt(choiceStr)
-      let info = tab[choiceInt]
-      let cmd = fmt"nvim '{info.path}' +:{info.lineNumber}"
-      discard execShellCmd(cmd)
-    except:
-      discard
+    if quiet == false and isatty:
+      stdout.write("Choose: ")
+      var choiceStr = stdin.readLine().strip()
+      try:
+        var choiceInt = parseInt(choiceStr)
+        let info = tab[choiceInt]
+        let cmd = fmt"nvim '{info.path}' +:{info.lineNumber}"
+        discard execShellCmd(cmd)
+      except:
+        discard
 
 
 when isMainModule:
