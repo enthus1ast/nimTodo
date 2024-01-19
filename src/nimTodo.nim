@@ -143,6 +143,23 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
+proc `===`(aa, bb: Tag): bool =
+  ## Compare tags smart
+  aa.strip(true, false, chars = {'#'}).toLower() == bb.strip(true, false, chars = {'#'}).toLower()
+
+proc filesWithTag(tags: Tags, tag: Tag): seq[Path] =
+  ## returns a seq with all files containing the given tag
+  for path, matches in tags.pairs:
+    if matches.filterIt(it.line.Tag === tag.Tag).len == 0:
+      result.add path
+
+proc openAllTagFiles(tag: Tag) =
+  ## Opens all the files of the given tag in nvim 
+  let tagsTable = populateTags()
+  var filesToOpen: seq[Path]
+  let param = tagsTable.filesWithTag(tag).mapIt(it.quoteShell()).join(" ")
+  discard execShellCmd(fmt"nvim {param}")
+
 proc main(basePath = config.basePath, absolutePath = false, showDone = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
     tags = false, tagsFiles = false, tagOpen = "") =
@@ -154,18 +171,10 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
 
   # Open all files that contain the given tag
   if tagOpen.len > 0:
-    let tagsTable = populateTags()
-    var filesToOpen: seq[Path]
-    for path, matches in tagsTable.pairs:
-      if 0 != matches.filterIt(it.line.toLower() == "#" & tagOpen.toLower()).len:
-        filesToOpen.add path
-    # echo filesToOpen
-    let param = filesToOpen.mapIt(it.quoteShell()).join(" ")
-    discard execShellCmd(fmt"nvim {param}")
+    openAllTagFiles(tag = tagOpen)
     quit()
 
-
-  # # Handle "tags" this just prints all the tags
+  # Handle "tags" this just prints all the tags
   if tags:
     let tagsTable = populateTags()
     tagsTable.printPathAndTags()
@@ -232,7 +241,7 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
 
 
 when isMainModule:
-  dispatch(main, 
+  dispatch(main,
     help={
       "absolutePath": "Prints the whole path to the file",
       "showDone": "Also print `DONE` entries",
