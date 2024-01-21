@@ -1,7 +1,7 @@
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, terminal, times, sequtils]
 import cligen, sim
-import configs, lexer, types, tags
+import configs, lexer, types, tags, openers
 
 ## Quick fix list
 # file row col errormessage
@@ -97,7 +97,7 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
       let tags = populateTags()
       tags.printPathAndTags()
       quit()
-    
+
     # Handle "tags" this just prints all the tags
     if tagsFiles:
       let tags = populateTags()
@@ -108,8 +108,7 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
     if newFile:
       try:
         let path = basePath / genTodaysFileName() # "diary" must be configurable
-        let cmd = fmt"nvim '{path}'"
-        discard execShellCmd(cmd)
+        openFile(path)
         quit()
       except:
         discard
@@ -153,15 +152,14 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
       try:
         var choiceInt = parseInt(choiceStr)
         let info = tab[choiceInt]
-        let cmd = fmt"nvim '{info.path}' +:{info.lineNumber}"
-        discard execShellCmd(cmd)
+        openFile(info.path, info.lineNumber)
       except:
         discard
 
 
 when isMainModule:
   dispatch(main,
-    help={
+    help = {
       "absolutePath": "Prints the whole path to the file",
       "showDone": "Also print `DONE` entries",
       "clist": "Prints entries in the vim `quick fix list` format",
@@ -169,7 +167,7 @@ when isMainModule:
       "newFile": "Opens the todays diary file"
 
     },
-    short={
+    short = {
       "absolutePath": 'p',
       "showDone": 'a',
       "tagsFiles": 'f'

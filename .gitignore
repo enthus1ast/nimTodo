@@ -2,3 +2,5 @@ src/nimTodo
 src/lexer
 src/config
 src/configs
+src/openers
+src/tags

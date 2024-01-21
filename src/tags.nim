@@ -3,7 +3,7 @@
 ##
 import std/[os, strformat, strutils, tables, enumerate,
   algorithm, sequtils]
-import lexer, configs, types
+import lexer, configs, types, openers
 
 proc normalizeTag*(str: Tag): string =
   return str.tolower()
@@ -77,7 +77,9 @@ proc filesWithTag*(tags: Tags, tag: Tag): seq[Path] =
 proc openAllTagFiles*(tags: Tags, tag: Tag) =
   ## Opens all the files of the given tag in nvim 
   var filesToOpen: seq[Path]
-  let param = tags.filesWithTag(tag).mapIt(it.quoteShell()).join(" ")
-  discard execShellCmd(fmt"nvim {param}")
+  let files = tags.filesWithTag(tag)
+  openFiles(files)
+
+  
 
 
