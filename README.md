@@ -113,6 +113,7 @@ Bugs
 Changelog
 ====================
 
+- 0.7.0 Added "DISCARD" (when a task will not be done)
 - 0.5.0 Added "-n" to open todays diary file
 - 0.4.0 Added Quotations (`) and (")
 - 0.3.0 Colors and blink (!,?) align first number

@@ -1,3 +1,7 @@
+## TODO jump direct to item by:
+##  tt 10
+##  tt 15
+
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, terminal, times, sequtils]
 import cligen, sim
@@ -9,6 +13,7 @@ import configs, lexer, types, tags, openers
 template TODO(matchers: seq[string]): string = matchers[0]
 template DOING(matchers: seq[string]): string = matchers[1]
 template DONE(matchers: seq[string]): string = matchers[2]
+template DISCARD(matchers: seq[string]): string = matchers[3]
 
 proc render(tokens: seq[Token], style: string): string =
   for token in tokens:
@@ -125,12 +130,26 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
         # Only show colors when on a tty (not eg in vim)
         if match.matcher == config.matchers.DOING:
           style = ansiForegroundColorCode(fgYellow)
+        elif match.matcher == config.matchers.DISCARD:
+          style &= ansiForegroundColorCode(fgWhite)
+          style &= ansiStyleCode(styleDim)
+          style &= ansiStyleCode(styleStrikethrough)
         elif showDone and match.matcher == config.matchers.DONE:
           style = ansiForegroundColorCode(fgGreen)
         else:
           resetAttributes()
 
-      if (showDone and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
+
+      var shouldPrint = false
+      if showDone and match.matcher == config.matchers.DONE:
+        shouldPrint = true
+      elif showDone and match.matcher == config.matchers.DISCARD:
+        shouldPrint = true
+      elif match.matcher in @[config.matchers.TODO, config.matchers.DOING]:
+        shouldprint = true
+
+      # if (showDone and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
+      if shouldPrint:
         var printMatch = match
         if absolutePath == false:
           printMatch.path = match.path.extractFilename()
@@ -158,6 +177,12 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
 
 
 when isMainModule:
+
+  # ## Special jump direct to xx item
+  # if paramCount() == 2:
+  
+    
+
   dispatch(main,
     help = {
       "absolutePath": "Prints the whole path to the file",
