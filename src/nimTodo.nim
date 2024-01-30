@@ -79,7 +79,7 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
-proc main(basePath = config.basePath, absolutePath = false, showDone = false,
+proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
     tags = false, tagsFiles = false, tagOpen = "") =
   ## `basePath` is the path which is searched
@@ -134,21 +134,21 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
           style &= ansiForegroundColorCode(fgWhite)
           style &= ansiStyleCode(styleDim)
           style &= ansiStyleCode(styleStrikethrough)
-        elif showDone and match.matcher == config.matchers.DONE:
+        elif showAll and match.matcher == config.matchers.DONE:
           style = ansiForegroundColorCode(fgGreen)
         else:
           resetAttributes()
 
 
       var shouldPrint = false
-      if showDone and match.matcher == config.matchers.DONE:
+      if showAll and match.matcher == config.matchers.DONE:
         shouldPrint = true
-      elif showDone and match.matcher == config.matchers.DISCARD:
+      elif showAll and match.matcher == config.matchers.DISCARD:
         shouldPrint = true
       elif match.matcher in @[config.matchers.TODO, config.matchers.DOING]:
         shouldprint = true
 
-      # if (showDone and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
+      # if (showAll and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
       if shouldPrint:
         var printMatch = match
         if absolutePath == false:
@@ -157,7 +157,7 @@ proc main(basePath = config.basePath, absolutePath = false, showDone = false,
         if clist:
           echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
         else:
-          echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}"
+          echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}{ansiResetCode}"
 
         tab[idx] = match
         idx.inc
@@ -186,7 +186,7 @@ when isMainModule:
   dispatch(main,
     help = {
       "absolutePath": "Prints the whole path to the file",
-      "showDone": "Also print `DONE` entries",
+      "showAll": "Also print `DONE` and `DISCARD` entries",
       "clist": "Prints entries in the vim `quick fix list` format",
       "quiet": "Just print, do not ask the user",
       "newFile": "Opens the todays diary file"
@@ -194,7 +194,7 @@ when isMainModule:
     },
     short = {
       "absolutePath": 'p',
-      "showDone": 'a',
+      "showAll": 'a',
       "tagsFiles": 'f'
     }
   )
