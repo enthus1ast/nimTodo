@@ -81,7 +81,7 @@ proc ctrlc() {.noconv.} =
 
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
-    tags = false, tagsFiles = false, tagOpen = "") =
+    tags = false, tagsFiles = false, tagOpen = "", grep = "") =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
@@ -147,6 +147,12 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         shouldPrint = true
       elif match.matcher in @[config.matchers.TODO, config.matchers.DOING]:
         shouldprint = true
+
+      if shouldPrint and grep != "":
+        if match.line.toLower().contains(grep.toLower()):
+          shouldPrint = true
+        else:
+          shouldPrint = false
 
       # if (showAll and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
       if shouldPrint:
