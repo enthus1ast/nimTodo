@@ -8,6 +8,8 @@ type
     data*: string
     col*: int
 
+const 
+  tagChars =  Digits + Letters 
 
 proc parse*(str: string): seq[Token] =
   var pos = 0
@@ -37,7 +39,7 @@ proc parse*(str: string): seq[Token] =
       pos.inc
     elif ch == '#':
       pos.inc
-      pos += str.parseUntil(data, {' '}, pos)
+      pos += str.parseWhile(data, tagChars, pos)
       var kind: TokenKind
       if data.len == 0 or data.startsWith("#"):
         # filter invalid tags
