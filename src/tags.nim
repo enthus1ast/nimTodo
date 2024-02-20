@@ -43,7 +43,7 @@ proc printPathAndTags*(tags: Tags) =
   ## So: /path/to/file.md #Tag1 #Tag2
   for path in tags.sortedKeys:
     let matches = tags[path]
-    echo path, " ", matches.mapIt(it.line).join(" ")
+    echo path, " ", matches.mapIt(it.line.toLower()).join(" ")
 
 proc printTagAndFiles*(tags: Tags) =
   ## Print all the tags from the files.
@@ -56,12 +56,17 @@ proc printTagAndFiles*(tags: Tags) =
       if not tagFile.contains(tag):
         tagFile[tag] = @[]
       tagFile[tag].add path
-  # echo tagFile
+
+  # get longest tag 
+  var maxlen = 0
+  for tag in tagFile.keys:
+    maxlen = max(tag.len, maxlen)
+
   for tag in tagFile.sortedKeys():
     let files = tagFile[tag]
-    echo tag
+    # echo ""
     for file in files.sorted():
-      echo "\t" & file
+      echo alignLeft(tag, maxlen) & "\t" & file
     echo ""
 
 proc `===`*(aa, bb: Tag): bool =
