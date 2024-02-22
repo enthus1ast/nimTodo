@@ -187,7 +187,6 @@ when isMainModule:
   # ## Special jump direct to xx item
   # if paramCount() == 2:
   
-    
 
   dispatch(main,
     help = {
@@ -195,7 +194,10 @@ when isMainModule:
       "showAll": "Also print `DONE` and `DISCARD` entries",
       "clist": "Prints entries in the vim `quick fix list` format",
       "quiet": "Just print, do not ask the user",
-      "newFile": "Opens the todays diary file"
+      "newFile": "Opens the todays diary file",
+      "grep": "Filters entries by the given text, can be combined with `-a' `-d` etc.",
+      "tags": "prints all files with their tags",
+      "tagsFiles": "prints all tags grouped together with their file"
 
     },
     short = {
