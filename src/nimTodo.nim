@@ -1,6 +1,8 @@
-## TODO jump direct to item by:
+## - TODO jump direct to item by:
 ##  tt 10
 ##  tt 15
+## - TODO modularize the main function
+## - TODO build --open functionallity (to open all the matches)
 
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, terminal, times, sequtils]
@@ -79,9 +81,10 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
+
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
-    tags = false, tagsFiles = false, tagOpen = "", grep = "") =
+    tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
@@ -118,6 +121,8 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
       except:
         discard
 
+  var validMatches: seq[Match]
+  
   block normal:
     ## Here the normal operations are handled, display the TODOs
     var tab: Table[int, Match]
@@ -153,6 +158,10 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           shouldPrint = true
         else:
           shouldPrint = false
+      
+      if shouldPrint:
+        validMatches.add match
+
 
       # if (showAll and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
       if shouldPrint:
@@ -168,6 +177,11 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         tab[idx] = match
         idx.inc
     
+
+    # if open:
+    #   ## When open is true, do not ask but open all matches
+      
+
     if isatty:
       resetAttributes()
 
@@ -197,7 +211,8 @@ when isMainModule:
       "newFile": "Opens the todays diary file",
       "grep": "Filters entries by the given text, can be combined with `-a' `-d` etc.",
       "tags": "prints all files with their tags",
-      "tagsFiles": "prints all tags grouped together with their file"
+      "tagsFiles": "prints all tags grouped together with their file",
+      "open": "Opens all the files found in the query, can be combined with `-a` `-d` `-g` etc."
 
     },
     short = {

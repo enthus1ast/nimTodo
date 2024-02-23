@@ -15,3 +15,7 @@ proc openFiles*(paths: seq[string]) =
   let params = paths.mapIt(it.quoteShell()).join(" ")
   openFile(params)
 
+## TODO create an overload that can also jump to the line
+# proc openFiles*(paths: seq[(string, int)]) =
+#   discard
+
