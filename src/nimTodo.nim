@@ -5,7 +5,7 @@
 ## - TODO build --open functionallity (to open all the matches)
 
 import std/[os, strformat, strutils, tables, enumerate,
-  terminal, algorithm, terminal, times, sequtils]
+  terminal, algorithm, terminal, times, sequtils, sets]
 import cligen, sim
 import configs, lexer, types, tags, openers
 
@@ -81,6 +81,7 @@ proc ctrlc() {.noconv.} =
   echo ""
   quit()
 
+var matchesToOpenLater: HashSet[string]
 
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
@@ -121,8 +122,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
       except:
         discard
 
-  var validMatches: seq[Match]
-  
+
   block normal:
     ## Here the normal operations are handled, display the TODOs
     var tab: Table[int, Match]
@@ -131,20 +131,6 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     for match in find(config.basePath.absolutePath(), config.matchers):
       var style = ""
       
-      if isatty:
-        # Only show colors when on a tty (not eg in vim)
-        if match.matcher == config.matchers.DOING:
-          style = ansiForegroundColorCode(fgYellow)
-        elif match.matcher == config.matchers.DISCARD:
-          style &= ansiForegroundColorCode(fgWhite)
-          style &= ansiStyleCode(styleDim)
-          style &= ansiStyleCode(styleStrikethrough)
-        elif showAll and match.matcher == config.matchers.DONE:
-          style = ansiForegroundColorCode(fgGreen)
-        else:
-          resetAttributes()
-
-
       var shouldPrint = false
       if showAll and match.matcher == config.matchers.DONE:
         shouldPrint = true
@@ -159,41 +145,54 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         else:
           shouldPrint = false
       
-      if shouldPrint:
-        validMatches.add match
 
-
-      # if (showAll and match.matcher == config.matchers.DONE) or match.matcher != config.matchers.DONE:
       if shouldPrint:
-        var printMatch = match
-        if absolutePath == false:
-          printMatch.path = match.path.extractFilename()
-        if doingOnly and match.matcher != config.matchers.DOING: continue # skip everything that is not DOING
-        if clist:
-          echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
+
+        if open:
+          matchesToOpenLater.incl(match.path)
         else:
-          echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}{ansiResetCode}"
+          if isatty:
+            # Only show colors when on a tty (not eg in vim)
+            if match.matcher == config.matchers.DOING:
+              style = ansiForegroundColorCode(fgYellow)
+            elif match.matcher == config.matchers.DISCARD:
+              style &= ansiForegroundColorCode(fgWhite)
+              style &= ansiStyleCode(styleDim)
+              style &= ansiStyleCode(styleStrikethrough)
+            elif showAll and match.matcher == config.matchers.DONE:
+              style = ansiForegroundColorCode(fgGreen)
+            else:
+              resetAttributes()
 
-        tab[idx] = match
-        idx.inc
+          block writeToTerminal:
+            var printMatch = match
+            if absolutePath == false:
+              printMatch.path = match.path.extractFilename()
+            if doingOnly and match.matcher != config.matchers.DOING: continue # skip everything that is not DOING
+            if clist:
+              echo fmt"{printMatch.path}:{printMatch.lineNumber}:{printMatch.columnNumber}:{printMatch.line}"
+            else:
+              echo fmt"{style}{idx:>3}: {printMatch.toStr(style, isatty)} :: {idx}{ansiResetCode}"
+
+          tab[idx] = match
+          idx.inc
     
+    if open:
+      let se = toSeq(matchesToOpenLater)
+      echo se.join(" ")
+    else:
+      if isatty:
+        resetAttributes()
 
-    # if open:
-    #   ## When open is true, do not ask but open all matches
-      
-
-    if isatty:
-      resetAttributes()
-
-    if quiet == false and isatty:
-      stdout.write("Choose: ")
-      var choiceStr = stdin.readLine().strip()
-      try:
-        var choiceInt = parseInt(choiceStr)
-        let info = tab[choiceInt]
-        openFile(info.path, info.lineNumber)
-      except:
-        discard
+      if quiet == false and isatty:
+        stdout.write("Choose: ")
+        var choiceStr = stdin.readLine().strip()
+        try:
+          var choiceInt = parseInt(choiceStr)
+          let info = tab[choiceInt]
+          openFile(info.path, info.lineNumber)
+        except:
+          discard
 
 
 when isMainModule:
