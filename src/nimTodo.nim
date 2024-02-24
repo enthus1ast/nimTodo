@@ -178,7 +178,9 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           idx.inc
     
     if open:
-      let se = toSeq(matchesToOpenLater)
+      var se: seq[string] = @[]
+      for path in matchesToOpenLater:
+        se.add path.quoteShell() 
       echo se.join(" ")
     else:
       if isatty:
