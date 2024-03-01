@@ -69,6 +69,14 @@ proc printTagAndFiles*(tags: Tags) =
       echo alignLeft(tag, maxlen) & "\t" & file
     echo ""
 
+proc generateCtags*(tags: Tags): string =
+  for path, matches in tags:
+    for match in matches:
+      let tag = match.line.strip(true, false, {'#'})
+      let path = match.path.splitPath.tail
+      result.add &"{tag.normalizeTag()}\t{path}\t{match.lineNumber}\n"
+  
+
 proc `===`*(aa, bb: Tag): bool =
   ## Compare tags smart
   aa.strip(true, false, chars = {'#'}).toLower() == bb.strip(true, false, chars = {'#'}).toLower()

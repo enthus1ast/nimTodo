@@ -5,6 +5,8 @@ type
     matchers*: seq[string]
     openFileAtLine*: string
     openFile*: string
+    ctagsAutogenerate*: bool
+    ctagsFilePath*: string
 
 # global config object
 let config* = loadObject[Config](getAppDir() / "config.ini", false)

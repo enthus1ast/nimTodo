@@ -3,6 +3,9 @@
 ##  tt 15
 ## - TODO modularize the main function
 ## - DONE build --open functionallity (to open all the matches)
+## - DONE Quick fix list
+##    file row col errormessage
+## - DONE generate ctags for tags autocompletion
 
 
 import std/[os, strformat, strutils, tables, enumerate,
@@ -10,8 +13,6 @@ import std/[os, strformat, strutils, tables, enumerate,
 import cligen, sim
 import configs, lexer, types, tags, openers
 
-## Quick fix list
-# file row col errormessage
 
 template TODO(matchers: seq[string]): string = matchers[0]
 template DOING(matchers: seq[string]): string = matchers[1]
@@ -86,7 +87,7 @@ var matchesToOpenLater: HashSet[string]
 
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
-    tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false) =
+    tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false, ctags = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
@@ -96,26 +97,37 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
   block specials:
     ## Here all the special commands are handled
 
+    if config.ctagsAutogenerate:
+      let tags = populateTags()
+      let tagsFile = open(config.ctagsFilePath, fmWrite)
+      tagsFile.write(tags.generateCtags)
+      tagsFile.close()
+
+    if ctags:
+      let tags = populateTags()
+      echo tags.generateCtags()
+      quit()
+
     # Open all files that contain the given tag
-    if tagOpen.len > 0:
+    elif tagOpen.len > 0:
       let tags = populateTags()
       tags.openAllTagFiles(tag = tagOpen)
       quit()
 
     # Handle "tags" this just prints all the tags
-    if tags:
+    elif tags:
       let tags = populateTags()
       tags.printPathAndTags()
       quit()
 
     # Handle "tags" this just prints all the tags
-    if tagsFiles:
+    elif tagsFiles:
       let tags = populateTags()
       tags.printTagAndFiles()
       quit()
 
     # Handle "newFile" which is special since it directly opens todays file
-    if newFile:
+    elif newFile:
       try:
         let path = basePath / genTodaysFileName() # "diary" must be configurable
         openFile(path)
