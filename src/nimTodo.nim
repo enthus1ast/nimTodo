@@ -2,7 +2,8 @@
 ##  tt 10
 ##  tt 15
 ## - TODO modularize the main function
-## - TODO build --open functionallity (to open all the matches)
+## - DONE build --open functionallity (to open all the matches)
+
 
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, terminal, times, sequtils, sets]
