@@ -37,6 +37,32 @@ Some
 
 It started as a hack, but i now use it everyday, plaintext rulez :)
 
+Usage
+====================
+
+```
+$ tt -h
+Usage:
+  main [optional-params] 
+`basePath` is the path which is searched when `absolutePath` is true print the whole pat when `json` is true print the output as json, the user is not asked then. when `quiet` is true, do not ask for the file
+Options:
+  -h, --help                                                         print this cligen-erated help
+  --help-syntax                                                      advanced: prepend,plurals,..
+  -b=, --basePath=    string  "/home/david/projects/obsidian/diary"  set basePath
+  -p, --absolutePath  bool    false                                  Prints the whole path to the file
+  -a, --showAll       bool    false                                  Also print `DONE` and `DISCARD` entries
+  -q, --quiet         bool    false                                  Just print, do not ask the user
+  -c, --clist         bool    false                                  Prints entries in the vim `quick fix list` format
+  -d, --doingOnly     bool    false                                  set doingOnly
+  -n, --newFile       bool    false                                  Opens the todays diary file
+  -t, --tags          bool    false                                  prints all files with their tags
+  -f, --tagsFiles     bool    false                                  prints all tags grouped together with their file
+  --tagOpen=          string  ""                                     set tagOpen
+  -g=, --grep=        string  ""                                     Filters entries by the given text, can be combined with `-a' `-d` etc.
+  -o, --open          bool    false                                  Opens all the files found in the query, can be combined with `-a` `-d` `-g` etc.
+  --ctags             bool    false                                  set ctags
+```
+
 Syntax
 ====================
 
