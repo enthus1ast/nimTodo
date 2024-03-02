@@ -1,5 +1,8 @@
+
 tt (nimTodo) a simple command line todo manager
 ====================
+
+![nimTodo](image.png)
 
 A tool that greps through files of a directory and list lines 
 that contains "TODO" "DOING" "DONE" "DISCARD" with colors.
