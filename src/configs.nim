@@ -7,6 +7,7 @@ type
     openFile*: string
     ctagsAutogenerate*: bool
     ctagsFilePath*: string
+    preCommand*: string
 
 # global config object
 let config* = loadObject[Config](getAppDir() / "config.ini", false)

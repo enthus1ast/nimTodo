@@ -97,16 +97,23 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
   block specials:
     ## Here all the special commands are handled
 
-    if config.ctagsAutogenerate:
-      let tags = populateTags()
-      let tagsFile = open(config.ctagsFilePath, fmWrite)
-      tagsFile.write(tags.generateCtags)
-      tagsFile.close()
+    if config.preCommand != "":
+      discard execShellCmd(config.preCommand)
 
     if ctags:
       let tags = populateTags()
       echo tags.generateCtags()
       quit()
+
+    if config.ctagsAutogenerate:
+      let tags = populateTags()
+      let newContent = tags.generateCtags
+      let oldContent = readFile(config.ctagsFilePath)
+      if newContent != oldContent:
+        # only rewrite if changed
+        let tagsFile = open(config.ctagsFilePath, fmWrite)
+        tagsFile.write(newContent)
+        tagsFile.close()
 
     # Open all files that contain the given tag
     elif tagOpen.len > 0:
