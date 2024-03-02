@@ -2,13 +2,12 @@ tt (nimTodo) a simple command line todo manager
 ====================
 
 A tool that greps through files of a directory and list lines 
-that contains "TODO" "DOING" "DONE" with colors.
+that contains "TODO" "DOING" "DONE" "DISCARD" with colors.
 
 Then ask the user which file to open.
 
 Read the "motivation" section why i wrote this
-and why this tool is the backbone of my todo list.
-
+and why this tool is the backbone of my todo management.
 
 
 
@@ -21,7 +20,7 @@ They were either too slow to open, not terminal-based, or not free.
 
 I always come back to plain text files (using my own markdown “dialect”) where I write my to-dos with (neo)vim. 
 I have used Obsidian in the past and liked the way it opened a daily diary file on start-up. 
-Although I no longer use Obsidian, I still maintain diary files, which I edit with vim.
+Although I no longer use Obsidian, I still maintain diary files, which I edit with (neo)vim.
 
 In the diary files, I document the things I do over the day and also add to-dos:
 ```
@@ -38,13 +37,38 @@ Some
 
 It started as a hack, but i now use it everyday, plaintext rulez :)
 
+Syntax
+====================
+
+tt (nimTodo) has some special syntax i like to use in the todo files.
+
+```
+- TODO *bright*
+- TODO "italic"
+- TODO !!!!!!!   <--- '!' is red and blinks
+- TODO ???????   <--- '?' is blue
+- TODO #tag
+- TODO `literal`
+```
+
+Installation
+====================
+
+configure the config.ini to your liking.
+
+i've created a symlink (do it how you like it):
+
+/home/david/.local/bin/tt -> /home/david/projects/nimTodo/src/nimTodo
+
+
+
 Neovim plugin/config
 ====================
 
 Cycle
 --------------------
 
-To cycle through TODO -> DOING -> DONE i use a vim plugin with this config.
+To cycle through TODO -> DOING -> DONE -> DISCARD i use a vim plugin with this config.
 On "ctrl + a" it cycles through the todo states
 
 ```
@@ -58,7 +82,7 @@ On "ctrl + a" it cycles through the todo states
         },
         -- User defined loops
         additions = {
-          {'TODO', 'DOING', 'DONE'}
+          {'TODO', 'DOING', 'DONE', 'DISCARD'}
         },
         allow_caps_additions = {
           {'enable', 'disable'}
@@ -113,6 +137,7 @@ Bugs
 Changelog
 ====================
 
+- 0.8.0 Added ctags generation (with --ctags) and automatic ctags generation for tag completion
 - 0.7.0 Added "DISCARD" (when a task will not be done)
 - 0.5.0 Added "-n" to open todays diary file
 - 0.4.0 Added Quotations (`) and (")
