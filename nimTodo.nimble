@@ -2,7 +2,7 @@
 
 version       = "0.9.0"
 author        = "David Krause (enthus1ast)"
-description   = "rg based TODO finder"
+description   = "a small, fast, cli todo organizer, written in Nim"
 license       = "MIT"
 srcDir        = "src"
 bin           = @["nimTodo"]
