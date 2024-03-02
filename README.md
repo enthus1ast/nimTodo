@@ -137,6 +137,7 @@ Bugs
 Changelog
 ====================
 
+- 0.9.0 Added pre command (to run any command with the app, for "git add *; git commit" for example
 - 0.8.0 Added ctags generation (with --ctags) and automatic ctags generation for tag completion
 - 0.7.0 Added "DISCARD" (when a task will not be done)
 - 0.5.0 Added "-n" to open todays diary file

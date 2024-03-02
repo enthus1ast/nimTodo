@@ -9,7 +9,7 @@
 
 
 import std/[os, strformat, strutils, tables, enumerate,
-  terminal, algorithm, terminal, times, sequtils, sets]
+  terminal, algorithm, terminal, times, sequtils, sets, osproc]
 import cligen, sim
 import configs, lexer, types, tags, openers
 
@@ -98,7 +98,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     ## Here all the special commands are handled
 
     if config.preCommand != "":
-      discard execShellCmd(config.preCommand)
+      discard execCmdEx(config.preCommand, workingDir = config.basePath)
 
     if ctags:
       let tags = populateTags()
