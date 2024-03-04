@@ -116,25 +116,25 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         tagsFile.close()
 
     # Open all files that contain the given tag
-    elif tagOpen.len > 0:
+    if tagOpen.len > 0:
       let tags = populateTags()
       tags.openAllTagFiles(tag = tagOpen)
       quit()
 
     # Handle "tags" this just prints all the tags
-    elif tags:
+    if tags:
       let tags = populateTags()
       tags.printPathAndTags()
       quit()
 
     # Handle "tags" this just prints all the tags
-    elif tagsFiles:
+    if tagsFiles:
       let tags = populateTags()
       tags.printTagAndFiles()
       quit()
 
     # Handle "newFile" which is special since it directly opens todays file
-    elif newFile:
+    if newFile:
       try:
         let path = basePath / genTodaysFileName() # "diary" must be configurable
         openFile(path)
