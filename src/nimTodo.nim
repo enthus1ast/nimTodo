@@ -48,6 +48,11 @@ proc render(tokens: seq[Token], style: string): string =
       result.add ansiStyleCode(styleBright)
       result.add token.data
       result.add ansiResetCode
+    of TStrike:
+      result.add ansiStyleCode(styleStrikethrough)
+      result.add token.data
+      result.add ansiResetCode
+
 
 
 proc toStr(match: Match, style: string, color = true): string =
