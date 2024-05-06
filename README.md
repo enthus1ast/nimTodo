@@ -78,6 +78,7 @@ tt (nimTodo) has some special syntax i like to use in the todo files.
 - TODO ???????   <--- '?' is blue
 - TODO #tag
 - TODO `literal`
+- TODO ~foo baa~ <--- renders `foo baa` as strike through
 ```
 
 Installation
@@ -166,6 +167,7 @@ Bugs
 Changelog
 ====================
 
+- 0.10.0 fix logic bug
 - 0.9.0 Added pre command (to run any command with the app, for "git add *; git commit" for example
 - 0.8.0 Added ctags generation (with --ctags) and automatic ctags generation for tag completion
 - 0.7.0 Added "DISCARD" (when a task will not be done)
