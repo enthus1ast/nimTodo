@@ -19,6 +19,17 @@ template DOING(matchers: seq[string]): string = matchers[1]
 template DONE(matchers: seq[string]): string = matchers[2]
 template DISCARD(matchers: seq[string]): string = matchers[3]
 
+iterator linesBuffer(fh: File): string =
+  ## if the file is small enough, we read it in completely
+  ## otherwise, this behaves like `lines()`
+  if fh.getFileSize < 1_000_000:  # smaller than 1mb
+    let buf = fh.readAll()
+    for line in buf.splitLines():
+      yield line
+  else:
+    for line in fh.lines():
+      yield line
+
 proc render(tokens: seq[Token], style: string): string =
   for token in tokens:
     case token.kind
@@ -76,7 +87,7 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
       except:
         echo "Could not open file: ", path
         continue
-    for lineNumber, line in enumerate(curFile.lines()):
+    for lineNumber, line in enumerate(curFile.linesBuffer()):
       for matcher in matchers:
         let columnNumber = line.find(matcher)
         if columnNumber >= 0:
