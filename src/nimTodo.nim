@@ -69,7 +69,14 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
   paths.sort()
 
   for path in paths:
-    for lineNumber, line in enumerate(path.lines()):
+
+    let curFile = 
+      try:
+        open(path, fmRead)
+      except:
+        echo "Could not open file: ", path
+        continue
+    for lineNumber, line in enumerate(curFile.lines()):
       for matcher in matchers:
         let columnNumber = line.find(matcher)
         if columnNumber >= 0:
@@ -80,6 +87,7 @@ iterator find(basePath: string, matchers: openarray[string]): Match =
             path: path,
             matcher: matcher
           )
+    curFile.close()
 
 proc genTodaysFileName(): string =
   return now().format("YYYY-MM-dd") & ".md"
@@ -103,7 +111,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     ## Here all the special commands are handled
 
     if config.preCommand != "":
-      discard execCmdEx(config.preCommand, workingDir = config.basePath)
+      discard execCmdEx(config.preCommand, workingDir = basePath)
 
     if ctags:
       let tags = populateTags()
@@ -153,7 +161,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     var tab: Table[int, Match]
     let isatty = isatty(stdout)
     var idx = 1
-    for match in find(config.basePath.absolutePath(), config.matchers):
+    for match in find(basePath.absolutePath(), config.matchers):
       var style = ""
       
       var shouldPrint = false
