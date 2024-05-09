@@ -124,6 +124,13 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     if config.preCommand != "":
       discard execCmdEx(config.preCommand, workingDir = basePath)
 
+    if config.asyncPreCommand != "":
+      discard startProcess(
+        config.asyncPreCommand, 
+        workingDir = basePath, 
+        options = {poEvalCommand}
+      )
+
     if ctags:
       let tags = populateTags()
       echo tags.generateCtags()

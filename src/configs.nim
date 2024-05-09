@@ -8,6 +8,7 @@ type
     ctagsAutogenerate*: bool
     ctagsFilePath*: string
     preCommand*: string
+    asyncPreCommand*: string
 
 # global config object
 let config* = loadObject[Config](getAppDir() / "config.ini", false)
