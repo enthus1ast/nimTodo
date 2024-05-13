@@ -63,6 +63,11 @@ proc render(tokens: seq[Token], style: string): string =
       result.add ansiStyleCode(styleStrikethrough)
       result.add token.data
       result.add ansiResetCode
+    of TDate:
+      result.add ansiForegroundColorCode(fgMagenta)
+      # result.add ansiStyleCode(styleStrikethrough)
+      result.add token.data
+      result.add ansiResetCode
 
 
 
