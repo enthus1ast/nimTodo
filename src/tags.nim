@@ -84,12 +84,11 @@ proc `===`*(aa, bb: Tag): bool =
 proc filesWithTag*(tags: Tags, tag: Tag): seq[Path] =
   ## returns a seq with all files containing the given tag
   for path, matches in tags.pairs:
-    if matches.filterIt(it.line.Tag === tag.Tag).len == 0:
+    if matches.filterIt(it.line.Tag === tag).len == 0:
       result.add path
 
 proc openAllTagFiles*(tags: Tags, tag: Tag) =
   ## Opens all the files of the given tag in nvim 
-  var filesToOpen: seq[Path]
   let files = tags.filesWithTag(tag)
   openFiles(files)
 

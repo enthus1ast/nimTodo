@@ -9,7 +9,7 @@
 
 
 import std/[os, strformat, strutils, tables, enumerate,
-  terminal, algorithm, terminal, times, sequtils, sets, osproc]
+  terminal, algorithm, times, sets, osproc]
 import cligen, sim
 import configs, lexer, types, tags, openers
 
