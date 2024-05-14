@@ -1,4 +1,8 @@
+{.push raises: [].}
 import strutils, parseutils, times
+import configs
+
+
 
 type
   TokenKind* = enum
@@ -7,11 +11,12 @@ type
     kind*: TokenKind
     data*: string
     col*: int
+  Tokens* = seq[Token]
 
 const 
   tagChars =  Digits + Letters 
 
-proc parse*(str: string): seq[Token] =
+proc parse*(str: string): Tokens =
   var pos = 0
   var data = ""
   while pos < str.len:
@@ -69,14 +74,14 @@ proc parse*(str: string): seq[Token] =
       var dateStr = ""
       pos += str.parseUntil(dateStr, Whitespace, pos)
       try:
-        var date = parse(dateStr, "yyyy'.'MM'.'dd'__'hh:mm:ss")
+        var date = parse(dateStr, config.dateMatcherLong)
         result.add Token(kind: TDate, data: "@" & dateStr, col: pos)
         continue
       except:
         discard
       
       try:
-        var date = parse(dateStr, "yyyy'.'MM'.'dd")
+        var date = parse(dateStr, config.dateMatcherShort)
         result.add Token(kind: TDate, data: "@" & dateStr, col: pos)
         continue
       except:

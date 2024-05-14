@@ -9,6 +9,9 @@ type
     ctagsFilePath*: string
     preCommand*: string
     asyncPreCommand*: string
+    dateMatcherShort*: string
+    dateMatcherLong*: string
+
 
 # global config object
 let config* = loadObject[Config](getAppDir() / "config.ini", false)

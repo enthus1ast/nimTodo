@@ -6,7 +6,7 @@
 ## - DONE Quick fix list
 ##    file row col errormessage
 ## - DONE generate ctags for tags autocompletion
-
+# {.push raises: [].}
 
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, times, sets, osproc]
@@ -19,7 +19,7 @@ template DOING(matchers: seq[string]): string = matchers[1]
 template DONE(matchers: seq[string]): string = matchers[2]
 template DISCARD(matchers: seq[string]): string = matchers[3]
 
-iterator linesBuffer(fh: File): string =
+iterator linesBuffer(fh: File): string {.raises: IoError.} =
   ## if the file is small enough, we read it in completely
   ## otherwise, this behaves like `lines()`
   if fh.getFileSize < 1_000_000:  # smaller than 1mb
@@ -30,7 +30,7 @@ iterator linesBuffer(fh: File): string =
     for line in fh.lines():
       yield line
 
-proc render(tokens: seq[Token], style: string): string =
+proc render(tokens: seq[Token], style: string): string {.raises: ValueError.} =
   for token in tokens:
     case token.kind
     of TStr, TBacktick:
@@ -72,16 +72,22 @@ proc render(tokens: seq[Token], style: string): string =
 
 
 proc toStr(match: Match, style: string, color = true): string =
-  if color:
-    var tokens = parse(match.line)
-    return fmt"{match.path}: {tokens.render(style)}"
-  else:
-    return fmt"{match.path}: {match.line}"
+  try:
+    if color:
+      var tokens = parse(match.line)
+      return fmt"{match.path}: {tokens.render(style)}"
+    else:
+      return fmt"{match.path}: {match.line}"
+  except:
+    echo "Could stringify match: ", match
 
 iterator find(basePath: string, matchers: openarray[string]): Match =
   var paths: seq[string] = @[]
-  for path in walkDirRec(basePath):
-    paths.add path
+  try:
+    for path in walkDirRec(basePath):
+      paths.add path
+  except:
+    echo "Could not walk dir: ", basePath
   paths.sort()
 
   for path in paths:
