@@ -9,6 +9,7 @@ type
     ctagsFilePath*: string
     preCommand*: string
     asyncPreCommand*: string
+    calendarEnabled*: bool
     dateMatcherShort*: string
     dateMatcherLong*: string
 

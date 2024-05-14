@@ -1,9 +1,9 @@
 {.push raises: [].}
 import times, parseutils, options, strutils, tables, hashes
-import lexer, configs
+import lexer, configs, types
 
 type 
-  Calendar = object
+  Calendar* = object
     dates: Table[Datetime, seq[Token]]
 
 proc hash*(datetime: Datetime): Hash =
@@ -13,7 +13,7 @@ proc hash*(datetime: Datetime): Hash =
 #   result = Calendar()
 #   result.dates = @[]
 
-proc getDateToken(tokens: seq[Token]): Token {.raises: ValueError.} =
+proc getDateToken*(tokens: seq[Token]): Token {.raises: ValueError.} =
   ## returns the first TDate token
   for token in tokens:
     if token.kind == TDate:
@@ -51,13 +51,12 @@ proc parseDateFromSoup*(str: string, date: var Datetime): bool =
 proc parseDateFromSoup*(str: string): Datetime =
   discard str.parseDateFromSoup(result)
 
-proc add(cal: var Calendar, tokens: seq[Token]) =
+proc add*(cal: var Calendar, tokens: seq[Token]) =
   ## adds a new entry to the calendar
   let tdate = 
     try:
       tokens.getDateToken()
     except:
-      echo getCurrentExceptionMsg()
       return
   var date: Datetime
   if not tdate.data.parseDateFromSoup(date):

@@ -1,17 +1,6 @@
 {.push raises: [].}
-import strutils, parseutils, times
+import strutils, parseutils, times, types
 import configs
-
-
-
-type
-  TokenKind* = enum
-    TStr, TQuestion, TExclamation, TStar, TBacktick, TQuotation, TTag, TStrike, TDate
-  Token* = object
-    kind*: TokenKind
-    data*: string
-    col*: int
-  Tokens* = seq[Token]
 
 const 
   tagChars =  Digits + Letters 

@@ -9,9 +9,9 @@
 # {.push raises: [].}
 
 import std/[os, strformat, strutils, tables, enumerate,
-  terminal, algorithm, times, sets, osproc]
+  terminal, algorithm, times, sets, osproc, sequtils]
 import cligen, sim
-import configs, lexer, types, tags, openers, calendar
+import configs, lexer, types, tags, openers, calendars
 
 
 template TODO(matchers: seq[string]): string = matchers[0]
@@ -65,26 +65,23 @@ proc render(tokens: seq[Token], style: string): string {.raises: ValueError.} =
       result.add ansiResetCode
     of TDate:
       result.add ansiForegroundColorCode(fgMagenta)
-      # result.add ansiStyleCode(styleStrikethrough)
       result.add token.data
-
       result.add ansiStyleCode(styleBright)
       let dur = (token.data.parseDateFromSoup() - now())
       let parts = dur.toParts()
       if parts[Days] < 1:
         result.add ansiForegroundColorCode(fgRed)
-        
+      if parts[Days] <= 0 and parts[Hours] <= 0 and parts[Minutes] < 15:
+        result.add ansiStyleCode(styleBlink)
       result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
-      # result.add $parts[Hours]
       result.add ansiResetCode
-
 
 
 proc toStr(match: Match, style: string, color = true): string =
   try:
     if color:
-      var tokens = parse(match.line)
-      return fmt"{match.path}: {tokens.render(style)}"
+      # var tokens = parse(match.line)
+      return fmt"{match.path}: {match.tokens.render(style)}"
     else:
       return fmt"{match.path}: {match.line}"
   except:
@@ -124,6 +121,7 @@ proc genTodaysFileName(): string =
   return now().format("YYYY-MM-dd") & ".md"
 
 proc ctrlc() {.noconv.} =
+  ## Graceful exit on ctrl-c
   echo ""
   quit()
 
@@ -196,6 +194,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
 
   block normal:
     ## Here the normal operations are handled, display the TODOs
+    var calendar: Calendar
     var tab: Table[int, Match]
     let isatty = isatty(stdout)
     var idx = 1
@@ -219,9 +218,19 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
 
       if shouldPrint:
 
+
         if open:
           matchesToOpenLater.incl(match.path)
         else:
+
+          let tokens = parse(match.line)
+          if config.calendarEnabled:
+            try:
+              calendar.add(tokens)
+            except:
+              discard # has no tdate
+            
+
           if isatty:
             # Only show colors when on a tty (not eg in vim)
             if match.matcher == config.matchers.DOING:
@@ -237,6 +246,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
 
           block writeToTerminal:
             var printMatch = match
+            printMatch.tokens = tokens
             if absolutePath == false:
               printMatch.path = match.path.extractFilename()
             if doingOnly and match.matcher != config.matchers.DOING: continue # skip everything that is not DOING
@@ -247,6 +257,21 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
 
           tab[idx] = match
           idx.inc
+
+    when false:
+      let todaysTasks = calendar.getTodaysTasks()
+      if todaysTasks.len > 0:
+        echo "Todays Tasks:"
+        echo "============="
+        for (date, tokens) in todaysTasks:
+          echo date, " ", tokens.mapIt(it.data).join(" ")
+
+      let upcomingTasks = calendar.getUpcompingTasks()
+      if upcomingTasks.len > 0:
+        echo "Upcoming Tasks:"
+        echo "==============="
+        for (date, tokens) in upcomingTasks:
+          echo date, " ", tokens.mapIt(it.data).join(" ")
     
     if open:
       var se: seq[string] = @[]
