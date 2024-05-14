@@ -11,7 +11,7 @@
 import std/[os, strformat, strutils, tables, enumerate,
   terminal, algorithm, times, sets, osproc]
 import cligen, sim
-import configs, lexer, types, tags, openers
+import configs, lexer, types, tags, openers, calendar
 
 
 template TODO(matchers: seq[string]): string = matchers[0]
@@ -67,6 +67,15 @@ proc render(tokens: seq[Token], style: string): string {.raises: ValueError.} =
       result.add ansiForegroundColorCode(fgMagenta)
       # result.add ansiStyleCode(styleStrikethrough)
       result.add token.data
+
+      result.add ansiStyleCode(styleBright)
+      let dur = (token.data.parseDateFromSoup() - now())
+      let parts = dur.toParts()
+      if parts[Days] < 1:
+        result.add ansiForegroundColorCode(fgRed)
+        
+      result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
+      # result.add $parts[Hours]
       result.add ansiResetCode
 
 

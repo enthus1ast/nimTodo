@@ -21,8 +21,7 @@ proc getDateToken(tokens: seq[Token]): Token {.raises: ValueError.} =
   raise newException(ValueError, "no TDate token")
 
 
-# proc parseDateFromSoup(str: string): Option[Datetime] =
-proc parseDateFromSoup(str: string, date: var Datetime): bool =
+proc parseDateFromSoup*(str: string, date: var Datetime): bool =
   ## try to parse a date string, from a soup of text
   ## 2024.05.13__13:38:34
   ## 2024.05.13
@@ -49,6 +48,9 @@ proc parseDateFromSoup(str: string, date: var Datetime): bool =
     except:
       discard
 
+proc parseDateFromSoup*(str: string): Datetime =
+  discard str.parseDateFromSoup(result)
+
 proc add(cal: var Calendar, tokens: seq[Token]) =
   ## adds a new entry to the calendar
   let tdate = 
@@ -63,17 +65,17 @@ proc add(cal: var Calendar, tokens: seq[Token]) =
     return
   cal.dates[date] = tokens
 
-proc add(cal: var Calendar, line: string) =
+proc add*(cal: var Calendar, line: string) =
   let tokens = line.parse()
   cal.add(tokens)
 
-proc getTodaysTasks(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
+proc getTodaysTasks*(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
   let curDate = now()
   for date, tokens in cal.dates:
     if date.format("yyyy-MM-dd") == curDate.format("yyyy-MM-dd"):
       result.add (date, tokens)
 
-proc getUpcompingTasks(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
+proc getUpcompingTasks*(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
   let curDate = now()
   for date, tokens in cal.dates:
     if date > curDate:
