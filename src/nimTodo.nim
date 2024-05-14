@@ -129,7 +129,7 @@ var matchesToOpenLater: HashSet[string]
 
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
-    tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false, ctags = false) =
+    tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false, ctags = false, upcomingTasks = false) =
   ## `basePath` is the path which is searched
   ## when `absolutePath` is true print the whole pat
   ## when `json` is true print the output as json, the user is not asked then.
@@ -258,7 +258,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           tab[idx] = match
           idx.inc
 
-    when false:
+    if upcomingTasks:
       let todaysTasks = calendar.getTodaysTasks()
       if todaysTasks.len > 0:
         echo "Todays Tasks:"
