@@ -30,7 +30,7 @@ iterator linesBuffer(fh: File): string {.raises: IoError.} =
     for line in fh.lines():
       yield line
 
-proc render(tokens: seq[Token], style: string): string {.raises: ValueError.} =
+proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError.} =
   for token in tokens:
     case token.kind
     of TStr, TBacktick:
@@ -226,7 +226,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           let tokens = parse(match.line)
           if config.calendarEnabled:
             try:
-              calendar.add(tokens)
+              calendar.add(tokens, idx)
             except:
               discard # has no tdate
             
@@ -259,19 +259,24 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           idx.inc
 
     if upcomingTasks:
+      let curDate = now()
       let todaysTasks = calendar.getTodaysTasks()
       if todaysTasks.len > 0:
-        echo "Todays Tasks:"
+        echo "\nTodays Tasks:"
         echo "============="
-        for (date, tokens) in todaysTasks:
-          echo date, " ", tokens.mapIt(it.data).join(" ")
+        for (date, tokens, idx) in todaysTasks:
+          # echo date, " ", tokens.mapIt(it.data).join(" ")
+          # echo idx, date, " ", tokens.render("")
+          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
 
       let upcomingTasks = calendar.getUpcompingTasks()
       if upcomingTasks.len > 0:
-        echo "Upcoming Tasks:"
+        echo "\nUpcoming Tasks:"
         echo "==============="
-        for (date, tokens) in upcomingTasks:
-          echo date, " ", tokens.mapIt(it.data).join(" ")
+        for (date, tokens, idx) in upcomingTasks:
+          # echo date, " ", tokens.mapIt(it.data).join(" ")
+          # echo idx, date, " ", tokens.render("")
+          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
     
     if open:
       var se: seq[string] = @[]
@@ -282,7 +287,7 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
       if isatty:
         resetAttributes()
 
-      if quiet == false and isatty:
+      if quiet == false and isatty and tab.len > 0:
         stdout.write("Choose: ")
         var choiceStr = stdin.readLine().strip()
         try:

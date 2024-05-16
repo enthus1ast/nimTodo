@@ -1,10 +1,12 @@
 {.push raises: [].}
-import times, parseutils, options, strutils, tables, hashes
+import times, parseutils, options, strutils, tables, hashes, algorithm
 import lexer, configs, types
 
 type 
   Calendar* = object
     dates: Table[Datetime, seq[Token]]
+    index: Table[Datetime, int]
+  CalInfo* = tuple[date: Datetime, tokens: Tokens, idx: int]
 
 proc hash*(datetime: Datetime): Hash =
   hash($datetime)
@@ -12,6 +14,7 @@ proc hash*(datetime: Datetime): Hash =
 # proc newCalendar(): Calendar =
 #   result = Calendar()
 #   result.dates = @[]
+
 
 proc getDateToken*(tokens: seq[Token]): Token {.raises: ValueError.} =
   ## returns the first TDate token
@@ -51,7 +54,7 @@ proc parseDateFromSoup*(str: string, date: var Datetime): bool =
 proc parseDateFromSoup*(str: string): Datetime =
   discard str.parseDateFromSoup(result)
 
-proc add*(cal: var Calendar, tokens: seq[Token]) =
+proc add*(cal: var Calendar, tokens: seq[Token], idx: int = 0) =
   ## adds a new entry to the calendar
   let tdate = 
     try:
@@ -63,22 +66,28 @@ proc add*(cal: var Calendar, tokens: seq[Token]) =
     echo "Could not parse date from: ", tdate
     return
   cal.dates[date] = tokens
+  cal.index[date] = idx
 
-proc add*(cal: var Calendar, line: string) =
+proc add*(cal: var Calendar, line: string, idx: int = 0) =
   let tokens = line.parse()
-  cal.add(tokens)
+  cal.add(tokens, idx)
 
-proc getTodaysTasks*(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
+proc dateCmp(aa, bb: CalInfo): int =
+  return cmp(aa.date, bb.date)
+
+proc getTodaysTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
   for date, tokens in cal.dates:
     if date.format("yyyy-MM-dd") == curDate.format("yyyy-MM-dd"):
-      result.add (date, tokens)
+      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+  result.sort(dateCmp, Ascending)
 
-proc getUpcompingTasks*(cal: Calendar): seq[tuple[date: Datetime, tokens: Tokens]] =
+proc getUpcompingTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
   for date, tokens in cal.dates:
     if date > curDate:
-      result.add (date, tokens)
+      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+  result.sort(dateCmp, Ascending)
 
 when isMainModule:
   import unittest
