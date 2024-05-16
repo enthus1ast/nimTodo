@@ -258,28 +258,17 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           tab[idx] = match
           idx.inc
 
+
     if upcomingTasks:
-
-      let missedTasks = calendar.getMissedTasks()
-      if missedTasks.len > 0:
-        echo "\nMissed Tasks:"
-        echo "============="
-        for (date, tokens, idx) in missedTasks:
-          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
-
-      let todaysTasks = calendar.getTodaysTasks()
-      if todaysTasks.len > 0:
-        echo "\nTodays Tasks:"
-        echo "============="
-        for (date, tokens, idx) in todaysTasks:
-          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
-
-      let upcomingTasks = calendar.getUpcompingTasks()
-      if upcomingTasks.len > 0:
-        echo "\nUpcoming Tasks:"
-        echo "==============="
-        for (date, tokens, idx) in upcomingTasks:
-          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
+      proc renderTasks(tasks: seq[CalInfo], headline: string) = 
+        if tasks.len > 0:
+          echo &"\n{headline}:"
+          echo "============="
+          for (date, tokens, idx) in tasks:
+            echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
+      renderTasks(calendar.getMissedTasks(), "Missed Tasks")
+      renderTasks(calendar.getTodaysTasks(), "Todays Tasks")
+      renderTasks(calendar.getUpcompingTasks(), "Upcoming Tasks")
     
     if open:
       var se: seq[string] = @[]

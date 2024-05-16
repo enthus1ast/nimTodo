@@ -4,8 +4,7 @@ import lexer, configs, types
 
 type 
   Calendar* = object
-    dates: Table[Datetime, seq[Token]]
-    index: Table[Datetime, int]
+    dates: seq[tuple[date: Datetime, tokens: seq[Token], idx: int]]
   CalInfo* = tuple[date: Datetime, tokens: Tokens, idx: int]
 
 proc hash*(datetime: Datetime): Hash =
@@ -65,8 +64,7 @@ proc add*(cal: var Calendar, tokens: seq[Token], idx: int = 0) =
   if not tdate.data.parseDateFromSoup(date):
     echo "Could not parse date from: ", tdate
     return
-  cal.dates[date] = tokens
-  cal.index[date] = idx
+  cal.dates.add( (date, tokens, idx) )
 
 proc add*(cal: var Calendar, line: string, idx: int = 0) =
   let tokens = line.parse()
@@ -80,24 +78,24 @@ proc isToday(date, curDate: Datetime): bool =
 
 proc getMissedTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
-  for date, tokens in cal.dates:
+  for (date, tokens, idx) in cal.dates:
     if date < curDate and not isToday(date, curDate):
-      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+      result.add (date, tokens, idx)
   result.sort(dateCmp, Ascending)
   
 
 proc getTodaysTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
-  for date, tokens in cal.dates:
+  for (date, tokens, idx) in cal.dates:
     if isToday(date, curDate):
-      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+      result.add (date, tokens, idx)
   result.sort(dateCmp, Ascending)
 
 proc getUpcompingTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
-  for date, tokens in cal.dates:
+  for (date, tokens, idx) in cal.dates:
     if date > curDate and not isToday(date, curDate):
-      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+      result.add (date, tokens, idx)
   result.sort(dateCmp, Ascending)
 
 when isMainModule:
