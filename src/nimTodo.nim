@@ -259,14 +259,19 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           idx.inc
 
     if upcomingTasks:
-      let curDate = now()
+
+      let missedTasks = calendar.getMissedTasks()
+      if missedTasks.len > 0:
+        echo "\nMissed Tasks:"
+        echo "============="
+        for (date, tokens, idx) in missedTasks:
+          echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
+
       let todaysTasks = calendar.getTodaysTasks()
       if todaysTasks.len > 0:
         echo "\nTodays Tasks:"
         echo "============="
         for (date, tokens, idx) in todaysTasks:
-          # echo date, " ", tokens.mapIt(it.data).join(" ")
-          # echo idx, date, " ", tokens.render("")
           echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
 
       let upcomingTasks = calendar.getUpcompingTasks()
@@ -274,8 +279,6 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         echo "\nUpcoming Tasks:"
         echo "==============="
         for (date, tokens, idx) in upcomingTasks:
-          # echo date, " ", tokens.mapIt(it.data).join(" ")
-          # echo idx, date, " ", tokens.render("")
           echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
     
     if open:

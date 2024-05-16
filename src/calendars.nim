@@ -75,17 +75,28 @@ proc add*(cal: var Calendar, line: string, idx: int = 0) =
 proc dateCmp(aa, bb: CalInfo): int =
   return cmp(aa.date, bb.date)
 
+proc isToday(date, curDate: Datetime): bool =
+  date.format("yyyy-MM-dd") == curDate.format("yyyy-MM-dd")
+
+proc getMissedTasks*(cal: Calendar): seq[CalInfo] =
+  let curDate = now()
+  for date, tokens in cal.dates:
+    if date < curDate and not isToday(date, curDate):
+      result.add (date, tokens, cal.index.getOrDefault(date, 0))
+  result.sort(dateCmp, Ascending)
+  
+
 proc getTodaysTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
   for date, tokens in cal.dates:
-    if date.format("yyyy-MM-dd") == curDate.format("yyyy-MM-dd"):
+    if isToday(date, curDate):
       result.add (date, tokens, cal.index.getOrDefault(date, 0))
   result.sort(dateCmp, Ascending)
 
 proc getUpcompingTasks*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
   for date, tokens in cal.dates:
-    if date > curDate:
+    if date > curDate and not isToday(date, curDate):
       result.add (date, tokens, cal.index.getOrDefault(date, 0))
   result.sort(dateCmp, Ascending)
 
