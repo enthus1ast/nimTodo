@@ -12,6 +12,7 @@ type
     calendarEnabled*: bool
     dateMatcherShort*: string
     dateMatcherLong*: string
+    hideUpcomingMoreThanDays*: int
 
 
 # global config object

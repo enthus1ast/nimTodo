@@ -14,7 +14,8 @@ type
 
 
   TokenKind* = enum
-    TStr, TQuestion, TExclamation, TStar, TBacktick, TQuotation, TTag, TStrike, TDate
+    TStr, TQuestion, TExclamation, TStar, 
+    TBacktick, TQuotation, TTag, TStrike, TDate, TBirthday
   Token* = object
     kind*: TokenKind
     data*: string

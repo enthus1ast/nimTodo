@@ -67,7 +67,8 @@ proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError
       result.add ansiForegroundColorCode(fgMagenta)
       result.add token.data
       result.add ansiStyleCode(styleBright)
-      let dur = (token.data.parseDateFromSoup() - now())
+      let (date, calKind) = token.data.parseDateFromSoup() 
+      let dur = date - now() 
       let parts = dur.toParts()
       if parts[Days] < 1:
         result.add ansiForegroundColorCode(fgRed)
@@ -75,7 +76,11 @@ proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError
         result.add ansiStyleCode(styleBlink)
       result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
       result.add ansiResetCode
-
+    of TBirthday:
+      result.add ansiStyleCode(styleUnderscore)
+      result.add token.data
+      result.add ansiResetCode
+      
 
 proc toStr(match: Match, style: string, color = true): string =
   try:
@@ -126,6 +131,19 @@ proc ctrlc() {.noconv.} =
   quit()
 
 var matchesToOpenLater: HashSet[string]
+
+
+proc genStyle(match: Match, config: Config, showAll: bool): string =
+  if match.matcher == config.matchers.DOING:
+    result = ansiForegroundColorCode(fgYellow)
+  elif match.matcher == config.matchers.DISCARD:
+    result &= ansiForegroundColorCode(fgWhite)
+    result &= ansiStyleCode(styleDim)
+    result &= ansiStyleCode(styleStrikethrough)
+  elif showAll and match.matcher == config.matchers.DONE:
+    result = ansiForegroundColorCode(fgGreen)
+  else:
+    resetAttributes() 
 
 proc main(basePath = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
@@ -226,23 +244,24 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           let tokens = parse(match.line)
           if config.calendarEnabled:
             try:
-              calendar.add(tokens, idx)
+              calendar.add(match, tokens, idx)
             except:
               discard # has no tdate
             
 
           if isatty:
             # Only show colors when on a tty (not eg in vim)
-            if match.matcher == config.matchers.DOING:
-              style = ansiForegroundColorCode(fgYellow)
-            elif match.matcher == config.matchers.DISCARD:
-              style &= ansiForegroundColorCode(fgWhite)
-              style &= ansiStyleCode(styleDim)
-              style &= ansiStyleCode(styleStrikethrough)
-            elif showAll and match.matcher == config.matchers.DONE:
-              style = ansiForegroundColorCode(fgGreen)
-            else:
-              resetAttributes()
+            style = genStyle(match, config, showAll)
+            # if match.matcher == config.matchers.DOING:
+            #   style = ansiForegroundColorCode(fgYellow)
+            # elif match.matcher == config.matchers.DISCARD:
+            #   style &= ansiForegroundColorCode(fgWhite)
+            #   style &= ansiStyleCode(styleDim)
+            #   style &= ansiStyleCode(styleStrikethrough)
+            # elif showAll and match.matcher == config.matchers.DONE:
+            #   style = ansiForegroundColorCode(fgGreen)
+            # else:
+            #   resetAttributes()
 
           block writeToTerminal:
             var printMatch = match
@@ -264,8 +283,9 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
         if tasks.len > 0:
           echo &"\n{headline}:"
           echo "============="
-          for (date, tokens, idx) in tasks:
-            echo fmt"{idx:>3}: {date} {tokens.render()} :: {idx}"
+          for (date, tokens, idx, match) in tasks:
+            let style = genStyle(match, config, true)
+            echo fmt"{style}{idx:>3}: {date} {tokens.render(style)} :: {idx}"
       renderTasks(calendar.getMissedTasks(), "Missed Tasks")
       renderTasks(calendar.getTodaysTasks(), "Todays Tasks")
       renderTasks(calendar.getUpcompingTasks(), "Upcoming Tasks")
