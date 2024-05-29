@@ -2,7 +2,7 @@
 import times, parseutils, options, strutils, tables, hashes, algorithm
 import lexer, configs, types
 
-## TODO handle Birthdays
+## DOING handle Birthdays
 ##    
 
 type 
@@ -74,11 +74,6 @@ proc add*(cal: var Calendar, match: Match, tokens: seq[Token], idx: int = 0) =
     return
   cal.dates.add( (match, date, tokens, idx, calKind) )
 
-
-# proc add*(cal: var Calendar, line: string, idx: int = 0) =
-#   let tokens = line.parse()
-#   cal.add(tokens, idx)
-
 proc dateCmp(aa, bb: CalInfo): int =
   return cmp(aa.date, bb.date)
 
@@ -112,16 +107,12 @@ proc getUpcompingTasks*(cal: Calendar): seq[CalInfo] =
 proc getBirthdays*(cal: Calendar): seq[CalInfo] =
   let curDate = now()
   for (match, date, tokens, idx, calKind) in cal.dates:
-    echo tokens
-
     if calKind == CalDate:
       continue
-
     ## To have a simpler logic, the year of the birthday is changed
     ## to the current year
     var bdate = date
     bdate.year = curDate.year
-
     if bdate > curDate and not isToday(bdate, curDate) and not isTooFarInTheFuture(bdate, curDate):
       result.add (date, tokens, idx, match)
   result.sort(dateCmp, Ascending)
