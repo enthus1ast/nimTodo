@@ -252,16 +252,6 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
           if isatty:
             # Only show colors when on a tty (not eg in vim)
             style = genStyle(match, config, showAll)
-            # if match.matcher == config.matchers.DOING:
-            #   style = ansiForegroundColorCode(fgYellow)
-            # elif match.matcher == config.matchers.DISCARD:
-            #   style &= ansiForegroundColorCode(fgWhite)
-            #   style &= ansiStyleCode(styleDim)
-            #   style &= ansiStyleCode(styleStrikethrough)
-            # elif showAll and match.matcher == config.matchers.DONE:
-            #   style = ansiForegroundColorCode(fgGreen)
-            # else:
-            #   resetAttributes()
 
           block writeToTerminal:
             var printMatch = match
@@ -290,6 +280,9 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
       renderTasks(calendar.getTodaysTasks(), "Todays Tasks")
       renderTasks(calendar.getUpcompingTasks(), "Upcoming Tasks")
     
+      renderTasks(calendar.getBirthdays(), "Birthdays")
+
+
     if open:
       var se: seq[string] = @[]
       for path in matchesToOpenLater:
