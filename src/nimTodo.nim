@@ -145,7 +145,7 @@ proc genStyle(match: Match, config: Config, showAll: bool): string =
   else:
     resetAttributes() 
 
-proc main(basePath = config.basePath, absolutePath = false, showAll = false,
+proc main(basePathRaw = config.basePath, absolutePath = false, showAll = false,
     quiet = false, clist = false, doingOnly = false, newFile = false,
     tags = false, tagsFiles = false, tagOpen = "", grep = "", open = false, ctags = false, upcomingTasks = false) =
   ## `basePath` is the path which is searched
@@ -153,6 +153,12 @@ proc main(basePath = config.basePath, absolutePath = false, showAll = false,
   ## when `json` is true print the output as json, the user is not asked then.
   ## when `quiet` is true, do not ask for the file
   setControlCHook(ctrlc)
+  
+  let basePath =  
+    if basePathRaw.isAbsolute: 
+      basePathRaw
+    else:
+      basePathRaw.absolutePath()
 
   block specials:
     ## Here all the special commands are handled

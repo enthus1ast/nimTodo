@@ -3,7 +3,8 @@ import strutils, parseutils, times, types
 import configs
 
 const 
-  tagChars =  Digits + Letters 
+  # germanLetters = {'ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü'} # does not work, since umlauts are no character literal 
+  tagChars =  Digits + Letters # + germanLetters
 
 proc parse*(str: string): Tokens =
   var pos = 0
