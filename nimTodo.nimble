@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.15.0"
+version       = "0.16.0"
 author        = "David Krause (enthus1ast)"
 description   = "a small, fast, cli todo organizer, written in Nim"
 license       = "MIT"

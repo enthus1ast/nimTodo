@@ -13,6 +13,7 @@ type
     dateMatcherShort*: string
     dateMatcherLong*: string
     hideUpcomingMoreThanDays*: int
+    extentionsToOpen*: seq[string]
 
 
 # global config object

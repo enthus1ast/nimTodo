@@ -74,7 +74,10 @@ proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError
         result.add ansiForegroundColorCode(fgRed)
       if parts[Days] <= 0 and parts[Hours] <= 0 and parts[Minutes] < 15:
         result.add ansiStyleCode(styleBlink)
-      result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
+      if parts[Weeks].abs > 0:
+        result.add &"  in W:{parts[Weeks]}{parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
+      else:
+        result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
       result.add ansiResetCode
     of TBirthday:
       result.add ansiStyleCode(styleUnderscore)
@@ -92,11 +95,13 @@ proc toStr(match: Match, style: string, color = true): string =
   except:
     echo "Could stringify match: ", match
 
-iterator find(basePath: string, matchers: openarray[string]): Match =
+iterator find(basePath: string, matchers: openarray[string], extentionsToOpen: seq[string]): Match =
   var paths: seq[string] = @[]
   try:
     for path in walkDirRec(basePath):
-      paths.add path
+      for ext in extentionsToOpen:
+        if path.endsWith(ext):
+          paths.add path
   except:
     echo "Could not walk dir: ", basePath
   paths.sort()
@@ -222,7 +227,7 @@ proc main(basePathRaw = config.basePath, absolutePath = false, showAll = false,
     var tab: Table[int, Match]
     let isatty = isatty(stdout)
     var idx = 1
-    for match in find(basePath.absolutePath(), config.matchers):
+    for match in find(basePath.absolutePath(), config.matchers, config.extentionsToOpen):
       var style = ""
       
       var shouldPrint = false
