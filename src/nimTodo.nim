@@ -75,7 +75,7 @@ proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError
       if parts[Days] <= 0 and parts[Hours] <= 0 and parts[Minutes] < 15:
         result.add ansiStyleCode(styleBlink)
       if parts[Weeks].abs > 0:
-        result.add &"  in W:{parts[Weeks]}{parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
+        result.add &"  in {parts[Weeks]}W:{parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
       else:
         result.add &"  in {parts[Days]}D:{parts[Hours]}H:{parts[Minutes]}M  "
       result.add ansiResetCode
