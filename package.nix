@@ -14,33 +14,29 @@ let
     sha256 = "sha256-oIwtIdDJmdcSDHlQenRfQIhF6oXo3pKcUj91vWnti4c=";
   };
 
-  # Build nimTodo from a proper source tarball (so nix copies to writable dir)
-  src = ./.;
-
 in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   pname = "nimTodo";
   version = "0.18.0";
 
-  # Use src as a tarball by wrapping it
-  src = builtins.toFile "nimTodo-src" ./.;
-
-  # Don't try to unpack a regular file as a directory
-  # Instead, extract it manually
-  unpackPhase = ''
-    tar xf $src -C $out --strip-components=1
-    cp -r $out/* .
-  '';
+  src = ./.;
 
   nativeBuildInputs = [ nim gcc ];
 
-  preBuild = ''
+  # Copy deps into a writable .nimble/ dir in the build area
+  # preBuild runs after unpackPhase; for local dir sources we use
+  # configurePhase which runs in the writable copy
+  # Copy deps and set writable cache dirs
+  preConfigure = ''
     rm -f src/nimTodo src/nimTodo.clang
     mkdir -p .nimble/pkgs
-    # Copy deps into build dir (writable)
     cp -r ${cligenPkg}/* .nimble/pkgs/
     cp -r ${simPkg}/src/* .nimble/pkgs/
   '';
+
+  # Writable cache dirs for nim compiler
+  NIM_CACHE_DIR = "${placeholder "out"}/.nimcache";
+  HOME = "${placeholder "out"}";
 
   buildPhase = ''
     nim c \
