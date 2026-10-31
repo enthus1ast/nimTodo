@@ -8,3 +8,8 @@ src/calendar
 src/nimTodo.clang
 src/calendars
 nimTodo
+
+# nix build output symlink — must be ignored, it is untracked and
+# changes the NAR hash of the `path:` flake input in nixosHomelab
+result
+result-*

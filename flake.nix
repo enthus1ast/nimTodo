@@ -20,6 +20,9 @@
       devShells.${system} = {
         default = pkgs.mkShell {
           packages = with pkgs; [ nim nimble gcc ];
+          shellAliases = {
+            tt = "nimTodo";
+          };
         };
       };
     };
