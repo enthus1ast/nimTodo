@@ -33,7 +33,6 @@ iterator linesBuffer(fh: File): string {.raises: IoError.} =
 proc render(tokens: seq[Token], style: string = ""): string {.raises: ValueError.} =
   for token in tokens:
     case token.kind
-# let config* = loadObject[Config](getAppDir() / "config.ini", false)
     of TStr, TBacktick:
       result.add style
       result.add token.data
