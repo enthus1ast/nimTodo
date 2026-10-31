@@ -98,7 +98,7 @@ proc parse*(str: string): Tokens =
 when isMainModule:
   # let tt = "!!- TODO Buy a new *macbook* for ivan!!!(angebot:   Fwd: CANCOM Angebot 10152018  )!!!?? "
   # let tt = "- DOING *Bremm Lab* Printer funktioniert noch nicht, kein Netzwerk (Kori, Luca) !!GET PORT!!" 
-  let tt = "foo `*baa*` baz asdf  \"Some stuff\" asdf #foo #baa ~striked~ @a asd @123 @2024.05.13__16:34:38 +1989.01.13"
+  let tt = "foo `*baa*` TODO baz asdf  \"Some stuff\" asdf #foo #baa ~striked~ @a asd @123 @2024.05.13__16:34:38 +1989.01.13"
   for tok in parse(tt):
     echo tok
 
